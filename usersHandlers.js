@@ -1,7 +1,9 @@
+const { hashPassword } = require("./auth");
 const database = require("./database");
 
 const getUsers = (req, res) => {
-  const initialSql = "select * from users";
+  const initialSql =
+    "select firstname, lastname, email, city, language from users";
   const where = [];
 
   if (req.query.language != null) {
@@ -40,7 +42,10 @@ const getUserById = (req, res) => {
   const id = parseInt(req.params.id);
 
   database
-    .query("select * from users where id = ?", [id])
+    .query(
+      "select firstname, lastname, email, city, language from users where id = ?",
+      [id]
+    )
     .then(([users]) => {
       if (users[0] != null) {
         res.json(users[0]);
@@ -54,12 +59,12 @@ const getUserById = (req, res) => {
     });
 };
 const postUser = (req, res) => {
-  const { firstname, lastname, email, city, language } = req.body;
+  const { firstname, lastname, email, city, language, password } = req.body;
 
   database
     .query(
-      "INSERT INTO users (firstname, lastname, email, city, language ) VALUES (?, ?, ?, ?, ?)",
-      [firstname, lastname, email, city, language]
+      "INSERT INTO users (firstname, lastname, email, city, language,hashedPassword ) VALUES (?, ?, ?, ?, ?, ?)",
+      [firstname, lastname, email, city, language, password]
     )
     .then(([result]) => {
       res.location(`/api/users/${result.insertId}`).sendStatus(201);
