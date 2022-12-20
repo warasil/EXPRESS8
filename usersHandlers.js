@@ -1,4 +1,3 @@
-const { hashPassword } = require("./auth");
 const database = require("./database");
 
 const getUsers = (req, res) => {
@@ -63,7 +62,7 @@ const postUser = (req, res) => {
 
   database
     .query(
-      "INSERT INTO users (firstname, lastname, email, city, language,hashedPassword ) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO users (firstname, lastname, email, city, language, hashedPassword ) VALUES (?, ?, ?, ?, ?, ?)",
       [firstname, lastname, email, city, language, password]
     )
     .then(([result]) => {
@@ -113,10 +112,32 @@ const deleteUser = (req, res) => {
       res.status(500).send("Error deleting the user");
     });
 };
+
+const getUserByEmailWithPasswordAndPassToNext = (req, res, next) => {
+  const { email } = req.body;
+
+  database
+    .query("select * from users where email = ?", [email])
+    .then(([users]) => {
+      if (users[0] != null) {
+        req.user = users[0];
+
+        next();
+      } else {
+        res.sendStatus(401);
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error retrieving data from database");
+    });
+};
+
 module.exports = {
   getUsers,
   getUserById,
   postUser,
   updateUser,
   deleteUser,
+  getUserByEmailWithPasswordAndPassToNext,
 };
